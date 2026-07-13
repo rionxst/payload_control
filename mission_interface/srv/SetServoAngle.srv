@@ -1,0 +1,5 @@
+int32 angle
+---
+bool success
+string message
+int32 current_angle
