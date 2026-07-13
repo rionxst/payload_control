@@ -123,7 +123,7 @@ class SiyiCameraNode(Node):
         # ---------------- Parameters ----------------
         self.declare_parameter('rtsp_url', self.DEFAULT_RTSP_URL)
         self.declare_parameter('frame_id', 'siyi_a8_camera')
-        self.declare_parameter('image_topic', 'image_raw')
+        self.declare_parameter('image_topic', 'camera/image_raw')
         self.declare_parameter('rtsp_transport', 'tcp')          # tcp | udp
         self.declare_parameter('reconnect_period_sec', 3.0)
         self.declare_parameter('publish_compressed', False)
