@@ -16,13 +16,13 @@ const int SERVO_MIN_US = 500;
 const int SERVO_MAX_US = 2400;
 
 // ---------- Servo Angle --------------- 
-const int LEFT_OPEN   = 30;
-const int LEFT_CLOSE  = 90;
+const int LEFT_OPEN   = 120;
+const int LEFT_CLOSE  = 30;
 
-const int RIGHT_OPEN  = 150;
-const int RIGHT_CLOSE = 90;
+const int RIGHT_OPEN  = 120;
+const int RIGHT_CLOSE = 30;
 
-int yawAngle = 90;
+int yawAngle = 90;   // yaw 현재각(홈=90°, 중립). setYaw의 n단계 분할 이동 시작점
 
 bool gripperOpened = false;
 bool armed = false;
@@ -61,13 +61,37 @@ void closeGripper()
 
 bool setYaw(int angle)
 {
+    // ===== 표준(위치제어) 서보용 — n단계 분할 이동 + 단계별 0.3초 delay =====
+    // Yaw를 각도 제어 서보로 교체함. write(angle)로 목표각(0~180)에 바로 정지 가능.
+    // 급격한 점프 대신 현재각(yawAngle) → 목표각을 YAW_STEPS 단계로 선형 분할하여
+    // 순차 이동하며, 각 단계마다 0.3초 대기해 부드럽게 이동한다.
+    // (총 이동시간 ≈ YAW_STEPS × 0.3초 — 거리와 무관하게 일정)
+
+    const int YAW_STEPS = 10;                      // 몇 번에 나눠 이동할지 (n)
+    const unsigned long YAW_STEP_DELAY_MS = 300UL; // 각 단계 사이 대기 (0.3초)
+
     if(angle < 0 || angle > 180)
         return false;
 
-    yawAngle = angle;
+    int start = yawAngle;
 
-    yawServo.write(angle);
+    if(angle == start)
+    {
+        // 이미 목표각 → 분할 이동 없이 즉시 반영(부팅/중복 명령 시 불필요한 3초 지연 방지)
+        yawServo.write(angle);
+        yawAngle = angle;
+        return true;
+    }
 
+    // 현재각 → 목표각을 n단계로 선형 보간하며 순차 이동
+    for(int i = 1; i <= YAW_STEPS; i++)
+    {
+        int stepAngle = start + (int)lroundf((float)(angle - start) * i / YAW_STEPS);
+        yawServo.write(stepAngle);
+        delay(YAW_STEP_DELAY_MS);
+    }
+
+    yawAngle = angle;   // 마지막 단계에서 목표각 도달
     return true;
 }
 
@@ -219,6 +243,9 @@ void setup()
     rightServo.setPeriodHertz(SERVO_FREQ);
     yawServo.setPeriodHertz(SERVO_FREQ);
 
+    leftServo.write(90);
+    rightServo.write(90);
+
     leftServo.attach(
         LEFT_PIN,
         SERVO_MIN_US,
@@ -236,7 +263,7 @@ void setup()
 
     openGripper();
 
-    setYaw(90);
+    setYaw(90);   // 홈 90°(중립) 확립 (yawAngle==90 → 분할 이동 없이 즉시 반영)
 
     Serial.println("READY,GRIPPER_CONTROLLER,V1");
 

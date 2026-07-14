@@ -19,7 +19,7 @@ class ServoSerialBridge(Node):
         super().__init__('servo_serial_bridge')
         self.declare_parameter('port', '/dev/ttyUSB0')
         self.declare_parameter('baud', 115200)
-        self.declare_parameter('timeout_sec', 1.0)
+        self.declare_parameter('timeout_sec', 4.0)
         # True 이면 그리퍼/요 명령 전에 ARM 이 안 되어 있을 때 자동으로 ARM 을 보냄
         self.declare_parameter('auto_arm', False)
 
@@ -33,7 +33,7 @@ class ServoSerialBridge(Node):
         # 펌웨어 상태 미러 (STATUS?/응답으로 갱신)
         self.armed = False
         self.gripper_opened = True   # 펌웨어는 setup()에서 openGripper()로 시작
-        self.yaw_angle = 90
+        self.yaw_angle = 90   # grapper_control.ino 홈(전원 인가 시) 기준각 = 90°(중립)
 
         self.ser = serial.Serial(
             port=self.port,
@@ -147,6 +147,7 @@ class ServoSerialBridge(Node):
     def handle_set_yaw(self, request, response):
         angle = int(request.angle)
 
+        # grapper_control.ino 의 setYaw(표준 위치제어 서보)와 동일하게 0~180 허용
         if angle < 0 or angle > 180:
             response.success = False
             response.message = 'angle must be 0~180'
