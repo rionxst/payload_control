@@ -17,10 +17,10 @@ const int SERVO_MAX_US = 2400;
 
 // ---------- Servo Angle --------------- 
 const int LEFT_OPEN   = 120;
-const int LEFT_CLOSE  = 30;
+const int LEFT_CLOSE  = 15;
 
 const int RIGHT_OPEN  = 120;
-const int RIGHT_CLOSE = 30;
+const int RIGHT_CLOSE = 15;
 
 int yawAngle = 90;   // yaw 현재각(홈=90°, 중립). setYaw의 n단계 분할 이동 시작점
 
