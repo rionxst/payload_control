@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'siyi_camera = my_package.camera_node:main',
+            'video_recorder = my_package.video_recorder_node:main',
         ],
     },
 )
